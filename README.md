@@ -68,13 +68,13 @@ This project was built as a portfolio project to demonstrate proficiency in **HT
 - Pagination support
 
 ###  About Page
-- #KnowUs hero section
+- KnowUs hero section
 - Who We Are section with illustration
 - Download Our App section with mobile app mockup
 - Feature highlights with icons
 
 ###  Contact Page
-- #let's_talk hero banner
+- let's_talk hero banner
 - Google Maps embed (Chennai, Tamil Nadu)
 - Contact form — Name, Email, Subject, Message, Submit
 - Team contact cards — John Doe, William Smith, Emma Stone
@@ -125,26 +125,26 @@ This project was built as a portfolio project to demonstrate proficiency in **HT
 No installation needed — this is a pure HTML/CSS/JS project.
 
 
-# 1. Clone the repository
+1. Clone the repository
 git clone https://github.com/your-username/cara-ecommerce.git
 
-# 2. Navigate to the project folder
+2. Navigate to the project folder
 cd cara-ecommerce
 
-# 3. Open in browser
+3. Open in browser
 open index.html
-# OR just double-click index.html in your file explorer
+OR just double-click index.html in your file explorer
 
 
 To run with a local server (recommended):
 
 
-# Using VS Code Live Server extension
-# Right-click index.html → Open with Live Server
+## Using VS Code Live Server extension
+## Right-click index.html → Open with Live Server
 
-# OR using Python
+## OR using Python
 python -m http.server 5500
-# Open http://localhost:5500
+## Open http://localhost:5500
 
 
 ##  What I Learned
