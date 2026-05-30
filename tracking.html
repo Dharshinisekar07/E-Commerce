@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cara – Track Your Order</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root { --teal:#088178; --bg:#f9f8f5; --text:#222; --muted:#777; --border:#e0ddd6; }
+    body { font-family:'Lato',sans-serif; background:var(--bg); color:var(--text); }
+
+    nav {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 60px; background:#fff; border-bottom:1px solid var(--border);
+      position:sticky; top:0; z-index:100;
+    }
+    .logo { font-family:'Playfair Display',serif; font-size:26px; color:var(--teal); font-style:italic; }
+    .nav-links { display:flex; gap:32px; list-style:none; }
+    .nav-links a { text-decoration:none; color:var(--text); font-size:14px; font-weight:700; letter-spacing:.5px; }
+    .nav-links a:hover { color:var(--teal); }
+
+    /* HERO BAND */
+    .hero-band {
+      background: linear-gradient(120deg, #088178, #0aa496);
+      padding:50px 60px; color:#fff; text-align:center;
+    }
+    .hero-band h1 { font-family:'Playfair Display',serif; font-size:36px; margin-bottom:8px; }
+    .hero-band p { opacity:.85; font-size:16px; }
+
+    /* SEARCH BAR */
+    .search-section { max-width:680px; margin:-28px auto 0; padding:0 20px; position:relative; z-index:10; }
+    .search-card {
+      background:#fff; border-radius:14px; border:1px solid var(--border);
+      box-shadow:0 8px 40px rgba(0,0,0,.1); padding:28px 32px;
+    }
+    .search-card h3 { font-size:17px; font-weight:700; margin-bottom:16px; }
+    .search-row { display:flex; gap:10px; }
+    .search-input {
+      flex:1; padding:13px 18px; border:1.5px solid var(--border); border-radius:8px;
+      font-size:15px; font-family:'Lato',sans-serif; outline:none; transition:border-color .2s;
+    }
+    .search-input:focus { border-color:var(--teal); }
+    .btn-track {
+      padding:13px 28px; background:var(--teal); color:#fff; border:none; border-radius:8px;
+      font-size:15px; font-weight:700; font-family:'Lato',sans-serif; cursor:pointer;
+      transition:background .2s; white-space:nowrap;
+    }
+    .btn-track:hover { background:#066b64; }
+
+    /* RESULT SECTION */
+    .result-section { max-width:860px; margin:40px auto 60px; padding:0 20px; display:none; }
+    .result-section.visible { display:block; }
+
+    /* ORDER CARD */
+    .order-card { background:#fff; border-radius:14px; border:1px solid var(--border); margin-bottom:20px; overflow:hidden; }
+    .order-card-header {
+      padding:20px 28px; border-bottom:1px solid var(--border);
+      display:flex; flex-wrap:wrap; gap:20px; align-items:center; justify-content:space-between;
+    }
+    .order-id { font-size:14px; }
+    .order-id strong { font-size:16px; color:var(--teal); }
+    .status-badge {
+      padding:6px 16px; border-radius:20px; font-size:13px; font-weight:700;
+      background:#e6f7f5; color:var(--teal); border:1px solid #b0e4e0;
+    }
+
+    /* TRACKING TIMELINE */
+    .timeline { padding:32px 28px; }
+    .timeline-title { font-size:15px; font-weight:700; margin-bottom:28px; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
+    .track-steps { display:flex; align-items:flex-start; justify-content:space-between; position:relative; }
+    .track-steps::before {
+      content:''; position:absolute; top:20px; left:5%; right:5%; height:3px;
+      background:var(--border); z-index:0;
+    }
+    .track-progress {
+      position:absolute; top:20px; left:5%; height:3px;
+      background:var(--teal); z-index:1; transition:width 1s ease;
+    }
+    .track-step { display:flex; flex-direction:column; align-items:center; gap:10px; flex:1; position:relative; z-index:2; }
+    .step-dot {
+      width:42px; height:42px; border-radius:50%; border:3px solid var(--border);
+      background:#fff; display:flex; align-items:center; justify-content:center;
+      font-size:18px; transition:all .4s;
+    }
+    .track-step.done .step-dot { border-color:var(--teal); background:var(--teal); }
+    .track-step.current .step-dot { border-color:var(--teal); background:#fff; box-shadow:0 0 0 5px rgba(8,129,120,.15); }
+    .step-label { font-size:12px; font-weight:700; color:var(--muted); text-align:center; max-width:80px; }
+    .track-step.done .step-label, .track-step.current .step-label { color:var(--teal); }
+    .step-date { font-size:11px; color:var(--muted); text-align:center; }
+
+    /* ORDER ITEMS */
+    .order-items { padding:0 28px 28px; }
+    .order-items h4 { font-size:14px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; margin-bottom:16px; }
+    .order-item-row { display:flex; align-items:center; gap:16px; padding:12px 0; border-bottom:1px solid var(--border); }
+    .order-item-row:last-child { border-bottom:none; }
+    .order-item-row img { width:64px; height:64px; object-fit:cover; border-radius:8px; }
+    .oi-info { flex:1; }
+    .oi-info h5 { font-size:14px; font-weight:700; margin-bottom:3px; }
+    .oi-info p { font-size:13px; color:var(--muted); }
+    .oi-price { font-size:15px; font-weight:700; color:var(--teal); }
+
+    /* DELIVERY INFO */
+    .delivery-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:0 28px 28px; }
+    .delivery-box { background:var(--bg); border-radius:10px; padding:18px; }
+    .delivery-box h4 { font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; margin-bottom:10px; }
+    .delivery-box p { font-size:14px; line-height:1.7; color:var(--text); }
+    .delivery-box strong { color:var(--teal); }
+
+    /* EVENTS LOG */
+    .events-log { padding:0 28px 28px; }
+    .events-log h4 { font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; margin-bottom:16px; }
+    .event-item { display:flex; gap:16px; padding-bottom:20px; position:relative; }
+    .event-item::before { content:''; position:absolute; left:11px; top:22px; bottom:0; width:2px; background:var(--border); }
+    .event-item:last-child::before { display:none; }
+    .event-dot { width:24px; height:24px; border-radius:50%; background:var(--border); border:2px solid #fff; flex-shrink:0; margin-top:2px; }
+    .event-item.done .event-dot { background:var(--teal); }
+    .event-info h5 { font-size:14px; font-weight:700; margin-bottom:3px; }
+    .event-info p { font-size:13px; color:var(--muted); }
+    .event-time { margin-left:auto; font-size:12px; color:var(--muted); white-space:nowrap; }
+
+    /* EMPTY / LOADING STATES */
+    .not-found { text-align:center; padding:60px 20px; color:var(--muted); }
+    .not-found div { font-size:48px; margin-bottom:16px; }
+    .not-found p { font-size:16px; }
+
+    /* FOOTER */
+    footer { background:#f4f3f0; border-top:1px solid var(--border); padding:50px 60px 24px; }
+    .footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1.5fr; gap:40px; margin-bottom:40px; }
+    .footer-logo { font-family:'Playfair Display',serif; font-size:24px; color:var(--teal); font-style:italic; margin-bottom:16px; }
+    .footer-col h4 { font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; margin-bottom:14px; }
+    .footer-col ul { list-style:none; }
+    .footer-col ul li { margin-bottom:8px; }
+    .footer-col ul li a { text-decoration:none; color:var(--muted); font-size:14px; }
+    .footer-col ul li a:hover { color:var(--teal); }
+    .footer-bottom { text-align:center; font-size:13px; color:var(--muted); border-top:1px solid var(--border); padding-top:20px; }
+
+    @media (max-width:700px) {
+      nav { padding:14px 16px; }
+      .hero-band { padding:40px 20px; }
+      .search-card { padding:20px; }
+      .track-steps::before { display:none; }
+      .track-steps { flex-direction:column; gap:0; }
+      .track-progress { display:none; }
+      .delivery-grid { grid-template-columns:1fr; }
+      footer { padding:30px 20px; }
+      .footer-grid { grid-template-columns:1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Cara</div>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="shop.html">Shop</a></li>
+    <li><a href="blog.html">Blog</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div style="font-size:20px">🛒</div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-band">
+  <h1>📦 Track Your Order</h1>
+  <p>Enter your order ID or email address to see real-time updates</p>
+</div>
+
+<!-- SEARCH -->
+<div class="search-section">
+  <div class="search-card">
+    <h3>Enter Order Details</h3>
+    <div class="search-row">
+      <input class="search-input" type="text" id="orderInput" placeholder="Order ID (try: CARA-2026-7841) or your email">
+      <button class="btn-track" onclick="trackOrder()">Track Order</button>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px;">💡 Demo: try <strong>CARA-2026-7841</strong> or <strong>CARA-2026-5532</strong></p>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="result-section" id="result">
+
+  <div id="order-found">
+    <!-- ORDER CARD -->
+    <div class="order-card">
+      <div class="order-card-header">
+        <div>
+          <div class="order-id">Order ID: <strong id="res-id">CARA-2026-7841</strong></div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px;">Placed on <span id="res-date">May 18, 2026</span> &nbsp;·&nbsp; <span id="res-items">3 items</span></div>
+        </div>
+        <div class="status-badge" id="res-status">Out for Delivery</div>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="timeline">
+        <div class="timeline-title">Tracking Progress</div>
+        <div style="position:relative;">
+          <div class="track-steps" id="track-steps">
+            <div class="track-step done">
+              <div class="step-dot">✓</div>
+              <div class="step-label">Order Placed</div>
+              <div class="step-date">May 18</div>
+            </div>
+            <div class="track-step done">
+              <div class="step-dot">✓</div>
+              <div class="step-label">Processing</div>
+              <div class="step-date">May 19</div>
+            </div>
+            <div class="track-step done">
+              <div class="step-dot">✓</div>
+              <div class="step-label">Shipped</div>
+              <div class="step-date">May 21</div>
+            </div>
+            <div class="track-step current">
+              <div class="step-dot">🚚</div>
+              <div class="step-label">Out for Delivery</div>
+              <div class="step-date">May 29</div>
+            </div>
+            <div class="track-step">
+              <div class="step-dot">🏠</div>
+              <div class="step-label">Delivered</div>
+              <div class="step-date">Est. Today</div>
+            </div>
+          </div>
+          <div class="track-progress" id="track-progress" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- ITEMS -->
+      <div class="order-items">
+        <h4>Items in This Order</h4>
+        <div class="order-item-row">
+          <img src="https://images.unsplash.com/photo-1620799139507-2a76f79a2f4d?w=150&q=80" alt="">
+          <div class="oi-info">
+            <h5>Cartoon Astronaut T-Shirt</h5>
+            <p>Size: M · Color: Floral Blue · Qty: 2</p>
+          </div>
+          <div class="oi-price">$156</div>
+        </div>
+        <div class="order-item-row">
+          <img src="https://images.unsplash.com/photo-1591195853828-11db59a44f43?w=150&q=80" alt="">
+          <div class="oi-info">
+            <h5>Floral Print Shirt</h5>
+            <p>Size: L · Color: Terracotta · Qty: 1</p>
+          </div>
+          <div class="oi-price">$65</div>
+        </div>
+        <div class="order-item-row">
+          <img src="https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=150&q=80" alt="">
+          <div class="oi-info">
+            <h5>Linen Summer Shirt</h5>
+            <p>Size: S · Color: Cream · Qty: 1</p>
+          </div>
+          <div class="oi-price">$55</div>
+        </div>
+      </div>
+
+      <!-- DELIVERY INFO -->
+      <div class="delivery-grid">
+        <div class="delivery-box">
+          <h4>Shipping Address</h4>
+          <p>John Doe<br>562 Wellington Road, Street 32<br>San Francisco, CA 94102<br>United States</p>
+        </div>
+        <div class="delivery-box">
+          <h4>Delivery Summary</h4>
+          <p>Carrier: <strong>FedEx Express</strong><br>Tracking #: <strong>FX7841293</strong><br>Est. Delivery: <strong>Today by 8 PM</strong><br>Total Paid: <strong>$276.00</strong></p>
+        </div>
+      </div>
+
+      <!-- EVENTS LOG -->
+      <div class="events-log">
+        <h4>Shipment Activity</h4>
+        <div class="event-item done">
+          <div class="event-dot"></div>
+          <div class="event-info">
+            <h5>Out for Delivery – San Francisco, CA</h5>
+            <p>Your package is with the delivery driver</p>
+          </div>
+          <div class="event-time">Today, 9:14 AM</div>
+        </div>
+        <div class="event-item done">
+          <div class="event-dot"></div>
+          <div class="event-info">
+            <h5>Arrived at Local Facility – Oakland, CA</h5>
+            <p>Package received at distribution center</p>
+          </div>
+          <div class="event-time">Today, 5:02 AM</div>
+        </div>
+        <div class="event-item done">
+          <div class="event-dot"></div>
+          <div class="event-info">
+            <h5>In Transit – Los Angeles Hub</h5>
+            <p>Shipment departed sort facility</p>
+          </div>
+          <div class="event-time">May 28, 11:30 PM</div>
+        </div>
+        <div class="event-item done">
+          <div class="event-dot"></div>
+          <div class="event-info">
+            <h5>Shipped – Cara Warehouse, Portland</h5>
+            <p>Order picked, packed, and handed to courier</p>
+          </div>
+          <div class="event-time">May 21, 3:45 PM</div>
+        </div>
+        <div class="event-item done">
+          <div class="event-dot"></div>
+          <div class="event-info">
+            <h5>Order Confirmed</h5>
+            <p>Payment received · Order entered processing</p>
+          </div>
+          <div class="event-time">May 18, 2:22 PM</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <button style="padding:12px 24px;border:1.5px solid var(--teal);color:var(--teal);background:#fff;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Lato',sans-serif;" onclick="window.print()">🖨️ Print Details</button>
+      <button style="padding:12px 24px;border:1.5px solid var(--border);color:var(--text);background:#fff;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Lato',sans-serif;">📧 Email Confirmation</button>
+      <button style="padding:12px 24px;border:1.5px solid var(--border);color:var(--text);background:#fff;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Lato',sans-serif;">❓ Get Help</button>
+    </div>
+  </div>
+
+  <div id="order-not-found" style="display:none;">
+    <div class="not-found">
+      <div>🔍</div>
+      <p>No order found for that ID. Please check and try again, or <a href="#" style="color:var(--teal);">contact support</a>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-logo">Cara</div>
+      <p style="color:var(--muted);font-size:14px;line-height:1.7;">Address: 562 Wellington Road, Street 32, San Francisco<br>Phone: +01 2345 6789<br>Hours: 10:00–18:00, Mon–Sat</p>
+    </div>
+    <div class="footer-col">
+      <h4>About</h4>
+      <ul>
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Delivery Information</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Contact Us</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>My Account</h4>
+      <ul>
+        <li><a href="#">Sign In</a></li>
+        <li><a href="#">View Cart</a></li>
+        <li><a href="#">My Wishlist</a></li>
+        <li><a href="#">Track My Order</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Install App</h4>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px;">From App Store or Google Play</p>
+      <a href="#" style="display:inline-block;background:#222;color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;text-decoration:none;margin-bottom:8px;">🍎 App Store</a><br>
+      <a href="#" style="display:inline-block;background:#222;color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;text-decoration:none;margin-top:4px;">▶ Google Play</a>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2025 Cara – HTML CSS E-commerce Template</div>
+</footer>
+
+<script>
+  const demoOrders = {
+    'CARA-2026-7841': { steps: 4, status: 'Out for Delivery', date: 'May 18, 2026', items: '3 items' },
+    'CARA-2026-5532': { steps: 5, status: 'Delivered ✓', date: 'May 10, 2026', items: '2 items' }
+  };
+
+  function trackOrder() {
+    const val = document.getElementById('orderInput').value.trim().toUpperCase();
+    const result = document.getElementById('result');
+    const found = document.getElementById('order-found');
+    const notFound = document.getElementById('order-not-found');
+    result.classList.add('visible');
+
+    const order = demoOrders[val] || (val.includes('@') ? demoOrders['CARA-2026-7841'] : null);
+
+    if (order) {
+      found.style.display = 'block';
+      notFound.style.display = 'none';
+      document.getElementById('res-id').textContent = val.includes('@') ? 'CARA-2026-7841' : val;
+      document.getElementById('res-date').textContent = order.date;
+      document.getElementById('res-items').textContent = order.items;
+      document.getElementById('res-status').textContent = order.status;
+
+      // Animate progress bar
+      const steps = document.querySelectorAll('.track-step');
+      const total = steps.length - 1;
+      const pct = ((order.steps - 1) / total) * 85 + 5;
+      setTimeout(() => {
+        document.getElementById('track-progress').style.width = pct + '%';
+      }, 300);
+
+      result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      found.style.display = 'none';
+      notFound.style.display = 'block';
+      result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  document.getElementById('orderInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') trackOrder();
+  });
+</script>
+</body>
+</html>
