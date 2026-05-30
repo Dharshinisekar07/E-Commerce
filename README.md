@@ -51,7 +51,7 @@ This project was built as a portfolio project to demonstrate proficiency in **HT
 ###  Shop Page
 - Full product catalog with pagination (Page 1 & 2)
 - Product cards with brand, name, star rating, price, and Add to Cart button
-- #stayhome banner
+- stayhome banner
 
 ###  Cart & Checkout
 - **Cart Page** — Item list with quantity +/− controls, size & color info, order summary
@@ -139,12 +139,8 @@ OR just double-click index.html in your file explorer
 To run with a local server (recommended):
 
 
-## Using VS Code Live Server extension
-## Right-click index.html → Open with Live Server
-
-## OR using Python
-python -m http.server 5500
-## Open http://localhost:5500
+ **Using VS Code Live Server extension**
+ **Right-click index.html → Open with Live Server**
 
 
 ##  What I Learned
